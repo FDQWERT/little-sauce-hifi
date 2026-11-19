@@ -63,6 +63,7 @@ class MainActivity : AppCompatActivity(), PlaybackEngine.Listener {
     private lateinit var btnPlay: ImageButton
     private lateinit var volumeBar: SeekBar
     private lateinit var playerHint: TextView
+    private var activeMode: PlaybackEngine.Mode = PlaybackEngine.Mode.SYSTEM
 
     // USB 页
     private lateinit var modeSystemCard: View
@@ -229,12 +230,13 @@ class MainActivity : AppCompatActivity(), PlaybackEngine.Listener {
 
     private fun applyVolume(p: Int) {
         val pct = p.coerceIn(0, 100)
-        if (engine.mode == PlaybackEngine.Mode.DIRECT) {
+        if (activeMode == PlaybackEngine.Mode.DIRECT) {
             engine.softwareVolume = pct / 100f
             playerHint.text =
                 if (pct >= 100) "独占模式：满电平直通（bit-perfect）"
                 else "独占模式：软件音量 $pct%（会改变采样值，非 bit-perfect）"
         } else {
+            if (engine.mode == PlaybackEngine.Mode.DIRECT) engine.softwareVolume = 1f
             route.setStreamVolume(pct)
             playerHint.text = "系统 USB 路由：音量由 AudioFlinger 处理，$pct%"
         }
@@ -525,6 +527,7 @@ class MainActivity : AppCompatActivity(), PlaybackEngine.Listener {
             outDevice.text = "—"
             return
         }
+        activeMode = info.mode
         outDevice.text = info.deviceName
         outMode.text = if (info.mode == PlaybackEngine.Mode.DIRECT) "独占直连" else "系统 USB 路由"
         outFormat.text =

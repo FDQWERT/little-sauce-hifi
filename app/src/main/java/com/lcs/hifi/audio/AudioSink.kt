@@ -6,6 +6,7 @@ import android.media.AudioDeviceInfo
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
+import android.util.Log
 import com.lcs.hifi.core.AudioRouteManager
 import com.lcs.hifi.core.RawUsb
 import com.lcs.hifi.core.UacDescriptor
@@ -39,6 +40,11 @@ interface AudioSink {
  */
 class AudioTrackSink(private val route: AudioRouteManager) : AudioSink {
 
+    private companion object {
+        const val TAG = "LCS-AudioTrack"
+    }
+
+
     private var track: AudioTrack? = null
     private var bufferBytes = 0
     private var openedRate = 0
@@ -58,32 +64,64 @@ class AudioTrackSink(private val route: AudioRouteManager) : AudioSink {
     override fun open(rate: Int, channels: Int, encoding: Int, device: AudioDeviceInfo?): Boolean {
         close()
         val mask = route.channelMask(channels)
+
+        // FLOAT 在部分 USB 通路上打开成功但写不进去，退回 16bit 保底出声
+        val candidates = if (encoding == AudioFormat.ENCODING_PCM_FLOAT)
+            intArrayOf(AudioFormat.ENCODING_PCM_FLOAT, AudioFormat.ENCODING_PCM_16BIT)
+        else intArrayOf(encoding)
+
+        for (enc in candidates) {
+            val t = tryOpen(rate, channels, mask, enc, device) ?: continue
+            track = t
+            openedRate = rate
+            openedChannels = channels
+            openedEncoding = enc
+            return true
+        }
+        return false
+    }
+
+    /** 建 track + 路由 + 静音探测；任一步失败返回 null 并清理 */
+    private fun tryOpen(rate: Int, channels: Int, mask: Int, enc: Int, device: AudioDeviceInfo?): AudioTrack? {
         val minBuf = try {
-            AudioTrack.getMinBufferSize(rate, mask, encoding)
+            AudioTrack.getMinBufferSize(rate, mask, enc)
         } catch (t: Throwable) {
             AudioTrack.ERROR
         }
-        if (minBuf <= 0) return false
+        if (minBuf <= 0) {
+            Log.w(TAG, "getMinBufferSize fail rate=$rate enc=$enc min=$minBuf")
+            return null
+        }
 
-        val frameBytes = channels * PcmCodec.bytesPerSample(encoding)
+        val frameBytes = channels * PcmCodec.bytesPerSample(enc)
         // 0.35s 缓冲：USB 时钟抖动大，太小会爆音
-        bufferBytes = max(minBuf * 2, rate * frameBytes / 3)
-
-        val fmt = AudioFormat.Builder()
-            .setEncoding(encoding)
-            .setSampleRate(rate)
-            .setChannelMask(mask)
-            .build()
+        val want = max(minBuf * 2, rate * frameBytes / 3)
 
         val t = try {
             AudioTrack.Builder()
                 .setAudioAttributes(route.audioAttributes())
-                .setAudioFormat(fmt)
-                .setBufferSizeInBytes(bufferBytes)
+                .setAudioFormat(
+                    AudioFormat.Builder()
+                        .setEncoding(enc)
+                        .setSampleRate(rate)
+                        .setChannelMask(mask)
+                        .build()
+                )
+                .setBufferSizeInBytes(want)
                 .setTransferMode(AudioTrack.MODE_STREAM)
                 .build()
         } catch (t2: Throwable) {
-            return false
+            Log.w(TAG, "AudioTrack build fail rate=$rate enc=$enc", t2)
+            return null
+        }
+
+        if (t.state != AudioTrack.STATE_INITIALIZED) {
+            Log.w(TAG, "AudioTrack state=${t.state} rate=$rate enc=$enc")
+            try {
+                t.release()
+            } catch (_: Throwable) {
+            }
+            return null
         }
 
         if (device != null) {
@@ -98,21 +136,53 @@ class AudioTrackSink(private val route: AudioRouteManager) : AudioSink {
         try {
             t.play()
         } catch (t2: Throwable) {
-            t.release()
-            return false
+            try {
+                t.release()
+            } catch (_: Throwable) {
+            }
+            return null
         }
-        track = t
-        openedRate = rate
-        openedChannels = channels
-        openedEncoding = encoding
-        return true
+
+        // 静音探测：确认真能写进去（有些通路 open 成功但 write 直接报错）
+        val probe = ByteArray(frameBytes * 240)
+        val w = try {
+            t.write(probe, 0, probe.size, AudioTrack.WRITE_BLOCKING)
+        } catch (t2: Throwable) {
+            Log.w(TAG, "probe exception", t2)
+            -1
+        }
+        if (w <= 0) {
+            Log.w(TAG, "probe fail w=$w state=${t.state} play=${t.playState} rate=$rate enc=$enc")
+            try {
+                t.pause()
+                t.flush()
+                t.release()
+            } catch (_: Throwable) {
+            }
+            return null
+        }
+        try {
+            t.pause()
+            t.flush()
+            t.play()
+        } catch (_: Throwable) {
+        }
+
+        bufferBytes = want
+        Log.i(TAG, "AudioTrack ok rate=$rate ch=$channels enc=$enc buffer=$want")
+        return t
     }
 
     override fun write(buf: ByteArray, offset: Int, size: Int): Int {
         val t = track ?: return -1
         return try {
-            t.write(buf, offset, size, AudioTrack.WRITE_BLOCKING)
+            val w = t.write(buf, offset, size, AudioTrack.WRITE_BLOCKING)
+            if (w < 0) {
+                Log.e(TAG, "write=$w state=${t.state} play=${t.playState} size=$size off=$offset")
+            }
+            w
         } catch (t2: Throwable) {
+            Log.e(TAG, "write exception", t2)
             -1
         }
     }

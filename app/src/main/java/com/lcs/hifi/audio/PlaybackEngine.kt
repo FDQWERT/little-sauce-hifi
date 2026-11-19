@@ -397,7 +397,7 @@ class PlaybackEngine(
         outEnc: Int,
         resampler: Resampler?
     ): Boolean {
-        val gain = if (mode == Mode.DIRECT) softwareVolume.coerceIn(0f, 1f) else 1f
+        val gain = if (sink is DirectUsbSink) softwareVolume.coerceIn(0f, 1f) else 1f
         adaptChannels(floatBuf, frames, srcCh, outCh, gain)
 
         var src = chanBuf
@@ -436,7 +436,7 @@ class PlaybackEngine(
             }
             val w = sink.write(byteBuf, off, bytes - off)
             if (w < 0) {
-                listener?.onError("写入输出失败")
+                listener?.onError("写入输出失败($w)")
                 return false
             }
             if (w == 0) {
