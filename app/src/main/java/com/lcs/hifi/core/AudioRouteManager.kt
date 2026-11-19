@@ -2,6 +2,7 @@ package com.lcs.hifi.core
 
 import android.content.Context
 import android.media.AudioAttributes
+import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioFormat
 import android.media.AudioManager
@@ -123,11 +124,11 @@ class AudioRouteManager(private val ctx: Context) {
         .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
         .build()
 
-    fun registerDeviceCallback(cb: AudioManager.AudioDeviceCallback) {
+    fun registerDeviceCallback(cb: AudioDeviceCallback) {
         am.registerAudioDeviceCallback(cb, null)
     }
 
-    fun unregisterDeviceCallback(cb: AudioManager.AudioDeviceCallback) {
+    fun unregisterDeviceCallback(cb: AudioDeviceCallback) {
         try {
             am.unregisterAudioDeviceCallback(cb)
         } catch (_: Throwable) {
