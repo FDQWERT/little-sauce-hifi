@@ -49,6 +49,15 @@ jobs:
           ls "$ANDROID_HOME/platforms" || true
           ls "$ANDROID_HOME/ndk" || true
 
+      - name: Net check
+        run: |
+          set -x
+          curl -sS -o /dev/null -w "%{http_code} maven-central\n" https://repo.maven.apache.org/maven2/org/ow2/asm/asm-commons/9.2/asm-commons-9.2.pom || echo "curl failed"
+          curl -sS -o /dev/null -w "%{http_code} google-maven\n" https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/8.2.2/gradle-8.2.2.pom || echo "curl failed"
+          curl -sS -o /dev/null -w "%{http_code} gradle-plugins\n" https://plugins.gradle.org/m2/org/ow2/asm/asm-commons/9.2/asm-commons-9.2.pom || echo "curl failed"
+          env | grep -i -E "proxy|no_proxy" || true
+          cat /etc/resolv.conf || true
+
       - uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: '8.6'
@@ -57,7 +66,7 @@ jobs:
         run: |
           set -o pipefail
           set -x
-          gradle :app:assembleDebug -PwithNative=true --no-daemon --stacktrace 2>&1 | tail -150
+          gradle :app:assembleDebug -PwithNative=true --no-daemon --stacktrace --info 2>&1 | tail -150
 
       - name: Collect APK
         if: always()
