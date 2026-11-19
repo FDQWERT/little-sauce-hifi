@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 匹配所有 UAC 音频接口设备（小尾巴 / USB DAC / USB 耳机） -->
+    <usb-device class="1" subclass="1" />
+    <usb-device class="1" subclass="2" />
+</resources>

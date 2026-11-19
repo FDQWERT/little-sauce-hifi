@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LittleSauce HiFi</string>
+    <string name="notif_channel">播放控制</string>
+    <string name="notif_channel_desc">后台播放与 USB 直连状态</string>
+</resources>

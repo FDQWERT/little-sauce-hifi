@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg">
+
+    <!-- 顶栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="LittleSauce HiFi"
+            android:textColor="@color/text"
+            android:textSize="15sp"
+            android:letterSpacing="0.06"
+            android:textStyle="bold" />
+
+        <View
+            android:id="@+id/usbDot"
+            android:layout_width="7dp"
+            android:layout_height="7dp"
+            android:layout_marginEnd="7dp"
+            android:background="@drawable/bg_dot_off" />
+
+        <TextView
+            android:id="@+id/usbHeaderText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="无 USB 音频"
+            android:textColor="@color/text_faint"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/pageContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <include layout="@layout/page_player" />
+
+        <include layout="@layout/page_usb" />
+
+        <include layout="@layout/page_library" />
+    </FrameLayout>
+
+    <!-- 底部导航 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:background="#0B0C0F"
+        android:paddingTop="6dp">
+
+        <LinearLayout
+            android:id="@+id/navPlayer"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <ImageView
+                android:id="@+id/navPlayerIcon"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_note"
+                android:contentDescription="播放" />
+
+            <TextView
+                android:id="@+id/navPlayerText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="播放"
+                android:layout_marginTop="3dp"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navUsb"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <ImageView
+                android:id="@+id/navUsbIcon"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_usb"
+                android:contentDescription="USB" />
+
+            <TextView
+                android:id="@+id/navUsbText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="USB 直连"
+                android:layout_marginTop="3dp"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navLibrary"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <ImageView
+                android:id="@+id/navLibraryIcon"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_list"
+                android:contentDescription="曲库" />
+
+            <TextView
+                android:id="@+id/navLibraryText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="曲库"
+                android:layout_marginTop="3dp"
+                android:textSize="10sp" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

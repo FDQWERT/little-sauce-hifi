@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="USB 直连"
+            android:textColor="@color/text"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="接小尾巴（USB DAC）时，选择输出模式。独占直通会绕过系统混音，直接把 PCM 送进 DAC。"
+            android:textColor="@color/text_dim"
+            android:textSize="12sp"
+            android:lineSpacingExtra="3dp" />
+
+        <!-- 模式 A -->
+        <LinearLayout
+            android:id="@+id/modeSystemCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="15dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="模式 A · 系统 USB 音频路由"
+                    android:textColor="@color/text"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/modeSystemTag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_chip_on"
+                    android:paddingStart="9dp"
+                    android:paddingEnd="9dp"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"
+                    android:text="当前"
+                    android:textColor="@color/accent"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="7dp"
+                android:text="走 Android AudioFlinger，采样率按曲目自动匹配，兼容所有小尾巴，无需特殊权限。系统混音链路不保证逐位一致。"
+                android:textColor="@color/text_dim"
+                android:textSize="11sp"
+                android:lineSpacingExtra="3dp" />
+        </LinearLayout>
+
+        <!-- 模式 B -->
+        <LinearLayout
+            android:id="@+id/modeDirectCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="15dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="模式 B · 独占直通 (bit-perfect)"
+                    android:textColor="@color/text"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/modeDirectTag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_chip"
+                    android:paddingStart="9dp"
+                    android:paddingEnd="9dp"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"
+                    android:text="可选"
+                    android:textColor="@color/text_dim"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="7dp"
+                android:text="抢占 UAC 音频接口，用 isochronous 传输直写 DAC，绕开系统音量与混音。个别机型内核会拒绝抢占，失败会自动回落模式 A。"
+                android:textColor="@color/text_dim"
+                android:textSize="11sp"
+                android:lineSpacingExtra="3dp" />
+
+            <TextView
+                android:id="@+id/directStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="monospace"
+                android:text="直通引擎：未启用"
+                android:textColor="@color/text_faint"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- 系统 USB 音频输出 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:text="系统 USB 音频输出"
+            android:textColor="@color/text_dim"
+            android:textSize="11sp"
+            android:letterSpacing="0.08" />
+
+        <LinearLayout
+            android:id="@+id/usbOutContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical" />
+
+        <!-- 原始 USB 设备 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="USB 接口设备"
+                android:textColor="@color/text_dim"
+                android:textSize="11sp"
+                android:letterSpacing="0.08" />
+
+            <TextView
+                android:id="@+id/btnRescan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_chip"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:text="重新扫描"
+                android:textColor="@color/text"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/rawUsbContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical" />
+
+        <TextView
+            android:id="@+id/usbTip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="未检测到 USB 音频设备。插上小尾巴后，系统会加载 snd-usb-audio 驱动，这里会自动出现设备。"
+            android:textColor="@color/text_faint"
+            android:textSize="10sp"
+            android:lineSpacingExtra="3dp" />
+    </LinearLayout>
+</ScrollView>

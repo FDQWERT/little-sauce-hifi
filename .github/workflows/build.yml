@@ -1,24 +1,72 @@
 name: build
-on: workflow_dispatch
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
 jobs:
-  b:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: unzip -oq lsc-payload.zip -d . || true
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
-      - run: |
-          yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" "ndk;25.1.8937393" "cmake;3.22.1"
+
+      - name: Locate Android SDK
+        run: |
+          set -e
+          SDK=/usr/local/lib/android/sdk
+          if [ ! -d "$SDK" ]; then
+            SDK=$ANDROID_HOME
+          fi
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          echo "$SDK/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          echo "$SDK/platform-tools" >> "$GITHUB_PATH"
+          echo "SDK = $SDK"
+          ls "$SDK" || true
+          echo "-- platforms --"; ls "$SDK/platforms" || true
+          echo "-- build-tools --"; ls "$SDK/build-tools" || true
+          echo "-- ndk --"; ls "$SDK/ndk" || true
+          echo "-- cmake --"; ls "$SDK/cmake" || true
+
+      - name: Install missing SDK packages
+        continue-on-error: true
+        run: |
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKM" ]; then
+            SDKM=$(command -v sdkmanager || true)
+          fi
+          echo "sdkmanager = $SDKM"
+          yes | "$SDKM" --licenses > /dev/null 2>&1 || true
+          "$SDKM" "platforms;android-34" "build-tools;34.0.0" || true
+          "$SDKM" "ndk;25.1.8937393" "cmake;3.22.1" || true
+          echo "-- after install --"
+          ls "$ANDROID_HOME/platforms" || true
+          ls "$ANDROID_HOME/ndk" || true
+
       - uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: '8.6'
-      - run: gradle :app:assembleDebug -PwithNative=true --no-daemon --stacktrace
+
+      - name: Assemble debug
+        run: |
+          set -o pipefail
+          set -x
+          gradle :app:assembleDebug -PwithNative=true --no-daemon --stacktrace 2>&1 | tail -150
+
+      - name: Collect APK
+        if: always()
+        run: |
+          find app/build/outputs -name '*.apk' -exec ls -la {} \; || true
+
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: apk
           path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: warn
